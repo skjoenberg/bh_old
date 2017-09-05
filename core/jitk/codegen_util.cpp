@@ -122,17 +122,17 @@ void write_kernel_function_arguments(const SymbolTable &symbols,
         if (array_type_prefix != nullptr) {
             stmp << array_type_prefix << " ";
         }
-        stmp << type_writer(b->type) << " *a" << symbols.baseID(b) << ", ";
+        stmp << "a" << symbols.baseID(b) << ", ";
     }
     for (const bh_view *view: symbols.offsetStrideViews()) {
         stmp << type_writer(bh_type::UINT64);
         if (all_pointers)
-            stmp << "*";
+            stmp << "";
         stmp << " vo" << symbols.offsetStridesID(*view) << ", ";
         for (int i=0; i<view->ndim; ++i) {
             stmp << type_writer(bh_type::UINT64);
             if (all_pointers)
-                stmp << "*";
+                stmp << "";
             stmp << " vs" << symbols.offsetStridesID(*view) << "_" << i << ", ";
         }
     }
@@ -141,7 +141,7 @@ void write_kernel_function_arguments(const SymbolTable &symbols,
             const InstrPtr &instr = *it;
             stmp << "const " << type_writer(instr->constant.type);
             if (all_pointers)
-                stmp << "*";
+                stmp << "";
             stmp << " c" << symbols.constID(*instr) << ", ";
         }
     }
