@@ -157,7 +157,8 @@ void write_openmp_header(const SymbolTable &symbols, Scope &scope, const LoopB &
     stringstream ss;
     // "OpenMP for" goes to the outermost loop
     if (block.rank == 0 and openmp_compatible(block)) {
-        ss << " parallel for";
+        // OUTCOMMENTED
+        //        ss << " parallel for";
         // Since we are doing parallel for, we should either do OpenMP reductions or protect the sweep instructions
         for (const InstrPtr &instr: block._sweeps) {
             assert(instr->operand.size() == 3);
@@ -191,7 +192,8 @@ void write_openmp_header(const SymbolTable &symbols, Scope &scope, const LoopB &
     }
     const string ss_str = ss.str();
     if(not ss_str.empty()) {
-        out << "#pragma omp" << ss_str << "\n";
+        // OUTCOMMENTED
+        //        out << "#pragma omp" << ss_str << "\n";
         spaces(out, 4 + block.rank*4);
     }
 }
@@ -214,48 +216,50 @@ void loop_head_writer(const SymbolTable &symbols, Scope &scope, const LoopB &blo
     // Write the for-loop header
     string itername;
     {stringstream t; t << "i" << block.rank; itername = t.str();}
-    out << "for(uint64_t " << itername;
+    out << "do " << itername;
     if (block._sweeps.size() > 0 and loop_is_peeled) // If the for-loop has been peeled, we should start at 1
-        out << "=1; ";
+        out << "=1,";
     else
-        out << "=0; ";
-    out << itername << " < " << block.size << "; ++" << itername << ") {\n";
+        out << "=0,";
+    out << block.size << "\n";
 }
 
 void Impl::write_kernel(const vector<Block> &block_list, const SymbolTable &symbols, const ConfigParser &config, stringstream &ss) {
 
+    /* OUTCOMMENTED
     // Write the need includes
-    ss << "#include <stdint.h>\n";
-    ss << "#include <stdlib.h>\n";
-    ss << "#include <stdbool.h>\n";
-    ss << "#include <complex.h>\n";
-    ss << "#include <tgmath.h>\n";
-    ss << "#include <math.h>\n";
-    if (symbols.useRandom()) { // Write the random function
-        ss << "#include <kernel_dependencies/random123_openmp.h>\n";
-    }
-    write_c99_dtype_union(ss); // We always need to declare the union of all constant data types
-    ss << "\n";
+        ss << "#include <stdint.h>\n";
+        ss << "#include <stdlib.h>\n";
+        ss << "#include <stdbool.h>\n";
+        ss << "#include <complex.h>\n";
+        ss << "#include <tgmath.h>\n";
+        ss << "#include <math.h>\n";
+        if (symbols.useRandom()) { // Write the random function
+            ss << "#include <kernel_dependencies/random123_openmp.h>\n";
+        }
+        write_c99_dtype_union(ss); // We always need to declare the union of all constant data types
+        ss << "\n";
+    */
 
     // Write the header of the execute function
-    ss << "void execute";
-    write_kernel_function_arguments(symbols, write_c99_type, ss, nullptr, false);
+    ss << "subroutine execute";
+    write_kernel_function_arguments(symbols, write_fortran_type, ss, nullptr, false);
 
     // Write the block that makes up the body of 'execute()'
-    ss << "{\n";
+    ss << "\n";
     for(const Block &block: block_list) {
-        write_loop_block(symbols, nullptr, block.getLoop(), config, {}, false, write_c99_type, loop_head_writer, ss);
+        write_loop_block(symbols, nullptr, block.getLoop(), config, {}, false, write_fortran_type, loop_head_writer, ss);
     }
-    ss << "}\n\n";
+    ss << "end subroutine execute\n\n";
 
     // Write the launcher function, which will convert the data_list of void pointers
     // to typed arrays and call the execute function
     {
-        ss << "void launcher(void* data_list[], uint64_t offset_strides[], union dtype constants[]) {\n";
+        ss << "subroutine launcher(void* data_list[], uint64_t offset_strides[], union dtype constants[])\n";
         for(size_t i=0; i < symbols.getParams().size(); ++i) {
             spaces(ss, 4);
             bh_base *b = symbols.getParams()[i];
-            ss << write_c99_type(b->type) << " *a" << symbols.baseID(b);
+            ss << write_fortran_type(b->type) << " a" << symbols.baseID(b);
             ss << " = data_list[" << i << "];\n";
         }
         spaces(ss, 4);
@@ -286,7 +290,7 @@ void Impl::write_kernel(const vector<Block> &block_list, const SymbolTable &symb
             ss << strtmp.substr(0, strtmp.size()-2);
         }
         ss << ");\n";
-        ss << "}\n";
+        ss << "\n";
     }
 }
 
