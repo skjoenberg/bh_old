@@ -34,14 +34,14 @@ namespace jitk {
 const char *write_fortran_type(bh_type dtype) {
     switch (dtype) {
         case bh_type::BOOL:       return "bool";
-        case bh_type::INT8:       return "interger*1";
-        case bh_type::INT16:      return "interger*2";
-        case bh_type::INT32:      return "interger*4";
-        case bh_type::INT64:      return "interger*8";
-        case bh_type::UINT8:      return "interger*1";
-        case bh_type::UINT16:     return "interger*2";
-        case bh_type::UINT32:     return "interger*4";
-        case bh_type::UINT64:     return "interger*8";
+        case bh_type::INT8:       return "integer*1";
+        case bh_type::INT16:      return "integer*2";
+        case bh_type::INT32:      return "integer*4";
+        case bh_type::INT64:      return "integer*8";
+        case bh_type::UINT8:      return "integer*1";
+        case bh_type::UINT16:     return "integer*2";
+        case bh_type::UINT32:     return "integer*4";
+        case bh_type::UINT64:     return "integer*8";
         case bh_type::FLOAT32:    return "real*4";
         case bh_type::FLOAT64:    return "real*8";
         case bh_type::COMPLEX64:  return "complex*8";
