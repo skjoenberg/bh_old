@@ -43,7 +43,7 @@ EngineOpenMP::EngineOpenMP(const ConfigParser &config, jitk::Statistics &stat) :
                                            tmp_src_dir(tmp_dir / "src"),
                                            tmp_bin_dir(tmp_dir / "obj"),
                                            cache_bin_dir(fs::path(config.defaultGet<string>("cache_dir", ""))),
-                                           compiler(config.defaultGet<string>("compiler_cmd", "/usr/bin/cc"),
+                                           compiler(config.defaultGet<string>("compiler_cmd", "/usr/bin/f95"),
                                                     config.defaultGet<string>("compiler_inc", ""),
                                                     config.defaultGet<string>("compiler_lib", "-lm"),
                                                     config.defaultGet<string>("compiler_flg", ""),
@@ -127,7 +127,7 @@ KernelFunction EngineOpenMP::getFunction(const string &source) {
         // NB: this is a nice debug option, but will hurt performance
         if (verbose) {
             fs::path srcfile = jitk::write_source2file(source, tmp_src_dir,
-                                                       jitk::hash_filename(compilation_hash, hash, ".c"),
+                                                       jitk::hash_filename(compilation_hash, hash, ".f95"),
                                                        true);
             compiler.compile(binfile.string(), srcfile.string());
         } else {

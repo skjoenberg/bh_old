@@ -77,9 +77,11 @@ class Impl : public ComponentImpl {
     }
 
     // The following methods implements the methods required by jitk::handle_gpu_execution()
+    //    stringstream declarations;
 
     // Write the OpenMP kernel
     void write_kernel(const vector<Block> &block_list, const SymbolTable &symbols, const ConfigParser &config, stringstream &ss);
+
 
     // Handle messages from parent
     string message(const string &msg) {
@@ -225,7 +227,7 @@ void loop_head_writer(const SymbolTable &symbols, Scope &scope, const LoopB &blo
 }
 
 void Impl::write_kernel(const vector<Block> &block_list, const SymbolTable &symbols, const ConfigParser &config, stringstream &ss) {
-
+    stringstream declartions;
     /* OUTCOMMENTED
     // Write the need includes
         ss << "#include <stdint.h>\n";
@@ -241,17 +243,30 @@ void Impl::write_kernel(const vector<Block> &block_list, const SymbolTable &symb
         ss << "\n";
     */
 
+    stringstream out;
+
     // Write the header of the execute function
-    ss << "subroutine execute";
+    ss << "subroutine launcher";
     write_kernel_function_arguments(symbols, write_fortran_type, ss, nullptr, false);
 
-    // Write the block that makes up the body of 'execute()'
+    //    Write the block that makes up the body of 'execute()'
     ss << "\n";
-    for(const Block &block: block_list) {
-        write_loop_block(symbols, nullptr, block.getLoop(), config, {}, false, write_fortran_type, loop_head_writer, ss);
-    }
-    ss << "end subroutine execute\n\n";
 
+    for(size_t i=0; i < symbols.getParams().size(); ++i) {
+        spaces(declartions, 4);
+        bh_base *b = symbols.getParams()[i];
+        declartions << write_fortran_type(b->type) << ", POINTER :: a" << symbols.baseID(b) << "\n";
+        //        ss << " = data_list[" << i << "];\n";
+    }
+    for(const Block &block: block_list) {
+        write_loop_block(symbols, nullptr, block.getLoop(), config, {}, false, write_fortran_type, loop_head_writer, out, declartions);
+    }
+
+    //    declartions << out.str();
+    ss << declartions.str() << out.str();
+    ss << "end subroutine launcher\n\n";
+
+    /*
     // Write the launcher function, which will convert the data_list of void pointers
     // to typed arrays and call the execute function
     {
@@ -291,7 +306,7 @@ void Impl::write_kernel(const vector<Block> &block_list, const SymbolTable &symb
         }
         ss << ");\n";
         ss << "\n";
-    }
+} */
 }
 
 void Impl::execute(bh_ir *bhir) {

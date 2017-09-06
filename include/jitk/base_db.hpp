@@ -411,7 +411,7 @@ public:
             out << "volatile ";
         }
 
-        out << type_str << " " << getName(view) << ";";
+        out << type_str << " :: " << getName(view);
 
         if (isTmp(view.base) or isScalarReplaced_RW(view.base)) {
             _declared_base.insert(view.base);

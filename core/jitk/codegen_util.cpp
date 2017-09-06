@@ -171,7 +171,8 @@ void write_loop_block(const SymbolTable &symbols,
                                           bool loop_is_peeled,
                                           const std::vector<const LoopB *> &threaded_blocks,
                                           std::stringstream &out)> head_writer,
-                      std::stringstream &out) {
+                      std::stringstream &out,
+                      std::stringstream &declarations) {
 
     if (block.isSystemOnly()) {
         out << "// Removed loop with only system instructions\n";
@@ -347,7 +348,7 @@ void write_loop_block(const SymbolTable &symbols,
                     write_instr(peeled_scope, *b.getInstr(), out, opencl);
                 }
             } else {
-                write_loop_block(symbols, &peeled_scope, b.getLoop(), config, threaded_blocks, opencl, type_writer, head_writer, out);
+                write_loop_block(symbols, &peeled_scope, b.getLoop(), config, threaded_blocks, opencl, type_writer, head_writer, out, out);
             }
         }
         spaces(out, 4 + block.rank*4);
@@ -363,16 +364,15 @@ void write_loop_block(const SymbolTable &symbols,
         for (const bh_view *view: instr->get_views()) {
             if (not scope.isDeclared(*view)) {
                 if (scope.isTmp(view->base)) {
-                    spaces(out, 8 + block.rank * 4);
-                    scope.writeDeclaration(*view, type_writer(view->base->type), out);
-                    out << "\n";
+                    spaces(declarations, 4);
+                    scope.writeDeclaration(*view, type_writer(view->base->type), declarations);
+                    declarations << "\n";
                 } else if (scope.isScalarReplaced_R(*view)) {
-                    spaces(out, 8 + block.rank * 4);
-                    scope.writeDeclaration(*view, type_writer(view->base->type), out);
-                    out << " " << scope.getName(*view) << " = a" << symbols.baseID(view->base);
-                    write_array_subscription(scope, *view, out);
-                    out << ";";
-                    out << "\n";
+                    spaces(declarations, 4);
+                    scope.writeDeclaration(*view, type_writer(view->base->type), declarations);
+                    declarations << " " << scope.getName(*view) << " = a" << symbols.baseID(view->base);
+                    write_array_subscription(scope, *view, declarations);
+                    declarations << "\n";
                 }
             }
         }
@@ -396,7 +396,7 @@ void write_loop_block(const SymbolTable &symbols,
                     write_instr(scope, *b.getInstr(), out, true);
                 }
             } else {
-                write_loop_block(symbols, &scope, b.getLoop(), config, threaded_blocks, opencl, type_writer, head_writer, out);
+                write_loop_block(symbols, &scope, b.getLoop(), config, threaded_blocks, opencl, type_writer, head_writer, out, out);
             }
         }
     } else {
@@ -417,7 +417,7 @@ void write_loop_block(const SymbolTable &symbols,
                     write_instr(scope, *instr, out);
                 }
             } else {
-                write_loop_block(symbols, &scope, b.getLoop(), config, threaded_blocks, opencl, type_writer, head_writer, out);
+                write_loop_block(symbols, &scope, b.getLoop(), config, threaded_blocks, opencl, type_writer, head_writer, out, out);
             }
         }
     }

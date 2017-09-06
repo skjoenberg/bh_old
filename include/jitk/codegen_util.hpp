@@ -95,7 +95,8 @@ void write_loop_block(const SymbolTable &symbols,
                                           bool loop_is_peeled,
                                           const std::vector<const LoopB *> &threaded_blocks,
                                           std::stringstream &out)> head_writer,
-                      std::stringstream &out);
+                      std::stringstream &out,
+                      std::stringstream &declartions);
 
 // Sets the constructor flag of each instruction in 'instr_list'
 // 'remotely_allocated_bases' is a collection of array bases already remotely allocated
@@ -252,7 +253,9 @@ void handle_cpu_execution(SelfType &self, bh_ir *bhir, EngineType &engine, const
         // Let's execute the kernel
         if (kernel_is_computing) { // We can skip this step if the kernel does no computation
             // Code generation
+            // PROB NOT RIGHT
             stringstream ss;
+            stringstream declartions;
             self.write_kernel(block_list, symbols, config, ss);
 
             // Create the constant vector
