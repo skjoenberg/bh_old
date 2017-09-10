@@ -148,7 +148,7 @@ KernelFunction EngineOpenMP::getFunction(const string &source) {
     // The (clumsy) cast conforms with the ISO C standard and will
     // avoid any compiler warnings.
     dlerror(); // Reset errors
-    *(void **) (&_functions[hash]) = dlsym(lib_handle, "launcher");
+    *(void **) (&_functions[hash]) = dlsym(lib_handle, "launcher_");
     const char* dlsym_error = dlerror();
     if (dlsym_error != nullptr) {
         cerr << "Cannot load function launcher(): " << dlsym_error << endl;
