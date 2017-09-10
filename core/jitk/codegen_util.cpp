@@ -285,7 +285,7 @@ void write_loop_block(const SymbolTable &symbols,
                 spaces(out, 4 + block.rank * 4);
             }
             scope.getName(view, out);
-            out << " = ";
+            out << "  = ";
             write_reduce_identity(instr->opcode, view.base->type, out);
             out << ";\n";
             spaces(out, 4 + block.rank * 4);
@@ -326,7 +326,6 @@ void write_loop_block(const SymbolTable &symbols,
                         peeled_scope.writeDeclaration(*view, type_writer(view->base->type), out);
                         out << " " << peeled_scope.getName(*view) << " = a" << symbols.baseID(view->base);
                         write_array_subscription(peeled_scope, *view, out);
-                        out << ";";
                         out << "\n";
                     }
                 }
@@ -370,9 +369,12 @@ void write_loop_block(const SymbolTable &symbols,
                 } else if (scope.isScalarReplaced_R(*view)) {
                     spaces(declarations, 4);
                     scope.writeDeclaration(*view, type_writer(view->base->type), declarations);
-                    declarations << " " << scope.getName(*view) << " = a" << symbols.baseID(view->base);
-                    write_array_subscription(scope, *view, declarations);
                     declarations << "\n";
+                    out << scope.getName(*view) << " = a" << symbols.baseID(view->base);
+                    //                    declarations << " = a" << symbols.baseID(view->base);
+                    //                    declarations << " " << scope.getName(*view) << " = a" << symbols.baseID(view->base);
+                    write_array_subscription(scope, *view, out);
+                    out << "\n";
                 }
             }
         }
@@ -422,7 +424,7 @@ void write_loop_block(const SymbolTable &symbols,
         }
     }
     spaces(out, 4 + block.rank*4);
-    out << "}\n";
+    out << "end do\n";
 
     // Let's copy the scalar replaced reduction outputs back to the original array
     for (const bh_view *view: scalar_replaced_reduction_outputs) {
