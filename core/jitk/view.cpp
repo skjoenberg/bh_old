@@ -42,9 +42,9 @@ void write_array_index(const Scope &scope, const bh_view &view, stringstream &ou
                 ++t;
             if (view.stride[i] != 0) {
                 if (axis_offset.first == t) {
-                    out << " +(i" << t << "+(" << axis_offset.second << ")) ";
+                    out << "(i" << t << "+(" << axis_offset.second << ")) ";
                 } else {
-                    out << " +i" << t;
+                    out << "i" << t;
                 }
                 if (view.stride[i] != 1) {
                     out << "*" << view.stride[i];
@@ -86,21 +86,20 @@ void write_array_subscription(const Scope &scope, const bh_view &view, stringstr
     // Let's check if the index is already declared as a variable
     if (not ignore_declared_indexes) {
         if (scope.isIdxDeclared(view)) {
-            out << "[";
+            out << "(";
             scope.getIdxName(view, out);
-            out << "]";
+            out << ")";
             return;
         }
     }
-    out << "[";
+    out << "(";
     if (scope.strides_as_variables and scope.isArray(view) and scope.symbols.existOffsetStridesID(view)) {
         write_array_index_variables(scope, view, out, hidden_axis, axis_offset);
     } else {
         write_array_index(scope, view, out, hidden_axis, axis_offset);
     }
-    out << "]";
+    out << ")";
 }
 
 } // jitk
 } // bohrium
-
