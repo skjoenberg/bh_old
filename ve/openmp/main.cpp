@@ -222,7 +222,7 @@ void loop_head_writer(const SymbolTable &symbols, Scope &scope, const LoopB &blo
     if (block._sweeps.size() > 0 and loop_is_peeled) // If the for-loop has been peeled, we should start at 1
         out << "=1,";
     else
-        out << "=0,";
+        out << "=1,";
     out << block.size << "\n";
 }
 
@@ -255,7 +255,7 @@ void Impl::write_kernel(const vector<Block> &block_list, const SymbolTable &symb
     for(size_t i=0; i < symbols.getParams().size(); ++i) {
         spaces(declartions, 4);
         bh_base *b = symbols.getParams()[i];
-        declartions << write_fortran_type(b->type) << ", POINTER :: a" << symbols.baseID(b) << "\n";
+        declartions << write_fortran_type(b->type) << ", POINTER :: a" << symbols.baseID(b) << "(:)\n";
         //        ss << " = data_list[" << i << "];\n";
     }
     for(const Block &block: block_list) {
