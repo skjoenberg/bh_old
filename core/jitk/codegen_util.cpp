@@ -370,9 +370,8 @@ void write_loop_block(const SymbolTable &symbols,
                     spaces(declarations, 4);
                     scope.writeDeclaration(*view, type_writer(view->base->type), declarations);
                     declarations << "\n";
+                    spaces(out, 8 + block.rank * 4);
                     out << scope.getName(*view) << " = a" << symbols.baseID(view->base);
-                    //                    declarations << " = a" << symbols.baseID(view->base);
-                    //                    declarations << " " << scope.getName(*view) << " = a" << symbols.baseID(view->base);
                     write_array_subscription(scope, *view, out);
                     out << "\n";
                 }

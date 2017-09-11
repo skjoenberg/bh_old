@@ -235,19 +235,29 @@ void Impl::write_kernel(const vector<Block> &block_list, const SymbolTable &symb
     stringstream out;
 
     // Write the header of the launcher subroutine
-    ss << "subroutine launcher" << "(data_list, offset_strides, constants)" << endl;
+    ss << "subroutine launcher(data_list, offset_strides, constants)" << endl;
 
     // Include convert_pointer, which unpacks the c pointers for fortran use
+    spaces(ss, 4);
     ss << "use iso_c_binding" << endl;
+    spaces(ss, 4);
     ss << "interface" << endl;
+    spaces(ss, 8);
     ss << "function convert_pointer(a,b) result(res) bind(C, name=\"convert_pointer\")" << endl;
+    spaces(ss, 12);
     ss << "use iso_c_binding" << endl;
+    spaces(ss, 12);
     ss << "type(c_ptr) :: a" << endl;
+    spaces(ss, 12);
     ss << "integer :: b" << endl;
+    spaces(ss, 12);
     ss << "type(c_ptr) :: res" << endl;
+    spaces(ss, 8);
     ss << "end function" << endl;
+    spaces(ss, 4);
     ss << "end interface" << endl;
-    ss << "type(c_ptr) :: data_list" << endl;
+    spaces(ss, 4);
+    ss << "type(c_ptr) :: data_list" << endl << endl;
 
     //
     for(size_t i=0; i < symbols.getParams().size(); ++i) {
@@ -269,7 +279,7 @@ void Impl::write_kernel(const vector<Block> &block_list, const SymbolTable &symb
     }
 
     // Put the strings together in the correct order
-    ss << declarations.str() << converts.str() << out.str();
+    ss << declarations.str() << endl << converts.str() << endl << out.str();
 
     // End the subroutine
     ss << "end subroutine launcher\n\n";
