@@ -227,86 +227,52 @@ void loop_head_writer(const SymbolTable &symbols, Scope &scope, const LoopB &blo
 }
 
 void Impl::write_kernel(const vector<Block> &block_list, const SymbolTable &symbols, const ConfigParser &config, stringstream &ss) {
-    stringstream declartions;
-    /* OUTCOMMENTED
-    // Write the need includes
-        ss << "#include <stdint.h>\n";
-        ss << "#include <stdlib.h>\n";
-        ss << "#include <stdbool.h>\n";
-        ss << "#include <complex.h>\n";
-        ss << "#include <tgmath.h>\n";
-        ss << "#include <math.h>\n";
-        if (symbols.useRandom()) { // Write the random function
-            ss << "#include <kernel_dependencies/random123_openmp.h>\n";
-        }
-        write_c99_dtype_union(ss); // We always need to declare the union of all constant data types
-        ss << "\n";
-    */
-
+    // Fortran declarations must appear at the top of the code, therefore they are stored in a seperate string stream
+    stringstream declarations;
+    // Pointer convertions must appear right after the declarations
+    stringstream converts;
+    // The rest of the code
     stringstream out;
 
-    // Write the header of the execute function
-    ss << "subroutine launcher";
-    write_kernel_function_arguments(symbols, write_fortran_type, ss, nullptr, false);
+    // Write the header of the launcher subroutine
+    ss << "subroutine launcher" << "(data_list, offset_strides, constants)" << endl;
 
-    //    Write the block that makes up the body of 'execute()'
-    ss << "\n";
+    // Include convert_pointer, which unpacks the c pointers for fortran use
+    ss << "use iso_c_binding" << endl;
+    ss << "interface" << endl;
+    ss << "function convert_pointer(a,b) result(res) bind(C, name=\"convert_pointer\")" << endl;
+    ss << "use iso_c_binding" << endl;
+    ss << "type(c_ptr) :: a" << endl;
+    ss << "integer :: b" << endl;
+    ss << "type(c_ptr) :: res" << endl;
+    ss << "end function" << endl;
+    ss << "end interface" << endl;
+    ss << "type(c_ptr) :: data_list" << endl;
 
+    //
     for(size_t i=0; i < symbols.getParams().size(); ++i) {
-        spaces(declartions, 4);
         bh_base *b = symbols.getParams()[i];
-        declartions << write_fortran_type(b->type) << ", POINTER :: a" << symbols.baseID(b) << "(:)\n";
-        //        ss << " = data_list[" << i << "];\n";
+        // For each relevant input, declare a fortran pointer and a c pointer
+        spaces(declarations, 4);
+        declarations << write_fortran_type(b->type) << ", POINTER, dimension (:) :: a" << symbols.baseID(b) << "\n";
+        spaces(declarations, 4);
+        declarations << "type(c_ptr) :: c" << symbols.baseID(b) << "\n";
+        // Write convert statements for the c pointers
+        spaces(converts, 4);
+        converts << "c" << symbols.baseID(b) << "= CONVERT_POINTER(" << "data_list, " << i << ")" << "\n";
+        spaces(converts, 4);
+        converts << "call c_f_pointer(c" << symbols.baseID(b) << ", a" << symbols.baseID(b) << ", shape=[2])\n";
     }
+
     for(const Block &block: block_list) {
-        write_loop_block(symbols, nullptr, block.getLoop(), config, {}, false, write_fortran_type, loop_head_writer, out, declartions);
+        write_loop_block(symbols, nullptr, block.getLoop(), config, {}, false, write_fortran_type, loop_head_writer, out, declarations);
     }
 
-    //    declartions << out.str();
-    ss << declartions.str() << out.str();
-    ss << "end subroutine launcher\n\n";
+    // Put the strings together in the correct order
+    ss << declarations.str() << converts.str() << out.str();
 
-    /*
-    // Write the launcher function, which will convert the data_list of void pointers
-    // to typed arrays and call the execute function
-    {
-        ss << "subroutine launcher(void* data_list[], uint64_t offset_strides[], union dtype constants[])\n";
-        for(size_t i=0; i < symbols.getParams().size(); ++i) {
-            spaces(ss, 4);
-            bh_base *b = symbols.getParams()[i];
-            ss << write_fortran_type(b->type) << " a" << symbols.baseID(b);
-            ss << " = data_list[" << i << "];\n";
-        }
-        spaces(ss, 4);
-        ss << "execute(";
-        // We create the comma separated list of args and saves it in `stmp`
-        stringstream stmp;
-        for(size_t i=0; i < symbols.getParams().size(); ++i) {
-            bh_base *b = symbols.getParams()[i];
-            stmp << "a" << symbols.baseID(b) << ", ";
-        }
-        uint64_t count=0;
-        for (const bh_view *view: symbols.offsetStrideViews()) {
-            stmp << "offset_strides[" << count++ << "], ";
-            for (int i=0; i<view->ndim; ++i) {
-                stmp << "offset_strides[" << count++ << "], ";
-            }
-        }
-        if (symbols.constIDs().size() > 0) {
-            uint64_t i=0;
-            for (auto it = symbols.constIDs().begin(); it != symbols.constIDs().end(); ++it) {
-                const InstrPtr &instr = *it;
-                stmp << "constants[" << i++ << "]." << bh_type_text(instr->constant.type) << ", ";
-            }
-        }
-        // And then we write `stmp` into `ss` excluding the last comma
-        const string strtmp = stmp.str();
-        if (not strtmp.empty()) {
-            ss << strtmp.substr(0, strtmp.size()-2);
-        }
-        ss << ");\n";
-        ss << "\n";
-} */
+    // End the subroutine
+    ss << "end subroutine launcher\n\n";
 }
 
 void Impl::execute(bh_ir *bhir) {
