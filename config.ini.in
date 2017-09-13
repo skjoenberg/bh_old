@@ -7,10 +7,11 @@
 #     The bridge is never part of the list                               #
 ##########################################################################
 [stacks]
-default    = bcexp_cpu, bccon, node, openmp
+default    = bcexp_cpu, bccon, node, fortran
 openmp     = bcexp_cpu, bccon, node, openmp
 opencl     = bcexp_gpu, bccon, node, opencl, openmp
 cuda       = bcexp_gpu, bccon, node, cuda, openmp
+fortran    = bcexp_gpu, bccon, node, fortran
 
 ############
 # Managers #
@@ -173,3 +174,35 @@ work_group_size_2dy = 4
 work_group_size_3dx = 32
 work_group_size_3dy = 2
 work_group_size_3dz = 2
+
+[fortran]
+impl = ${CMAKE_INSTALL_PREFIX}/${LIBDIR}/libbh_ve_openmp${CMAKE_SHARED_LIBRARY_SUFFIX}
+verbose = false
+# Profiling statistics
+prof = false
+prof_filename =
+# Write a Graphviz graph for each kernel
+graph = false
+# Directory for temporary files (e.g. /tmp/). Default: `boost::filesystem::temp_directory_path()`
+tmp_dir =
+# Directory for cache files (persistent between executions). Default: the empty string, which disable the cache
+cache_dir = ${BIN_KERNEL_CACHE_DIR}
+# JIT compile options
+compiler_cmd = "/usr/bin/gfortran"
+compiler_inc = "${VE_FORTRAN_COMPILER_INC}"
+compiler_lib = "-lm -L/home/sebastian/.local/lib -lbh -lconvertpointer"
+compiler_flg = "-shared -lc -fPIC"
+compiler_fortran = ${_VE_FORTRAN_COMPILER_FORTRAN}
+compiler_fortran_simd = ${_VE_FORTRAN_COMPILER_FORTRAN_SIMD}
+# List of extension methods
+libs = ${FORTRAN_LIBS}
+# The pre-fuser to use
+pre_fuser = pre_fuser_lossy
+# List of instruction fuser/transformers
+fuser_list = greedy, collapse_redundant_axes
+# *_as_var specifies whether to hard-code variables or have them as variables
+index_as_var = false
+strides_as_variables = false
+const_as_var = false
+# Monolithic combines all blocks into one shared library rather than a block-nest per shared library
+monolithic = false
