@@ -32,9 +32,12 @@ void write_array_index(const Scope &scope, const bh_view &view, stringstream &ou
                        int hidden_axis, const pair<int, int> axis_offset) {
     bool empty_subscription = true;
     if (view.start > 0) {
-        out << view.start;
-        empty_subscription = false;
+        out << view.start + 1;
+        //        empty_subscription = false;
+    } else {
+        out << 1;
     }
+
     if (not bh_is_scalar(&view)) { // NB: this optimization is required when reducing a vector to a scalar!
         for (int i = 0; i < view.ndim; ++i) {
             int t = i;
@@ -42,9 +45,9 @@ void write_array_index(const Scope &scope, const bh_view &view, stringstream &ou
                 ++t;
             if (view.stride[i] != 0) {
                 if (axis_offset.first == t) {
-                    out << "(i" << t << "+(" << axis_offset.second << ")) ";
+                    out << "+(i" << t << "+(" << axis_offset.second << ")) ";
                 } else {
-                    out << "i" << t;
+                    out << "+i" << t;
                 }
                 if (view.stride[i] != 1) {
                     out << "*" << view.stride[i];
@@ -53,8 +56,8 @@ void write_array_index(const Scope &scope, const bh_view &view, stringstream &ou
             }
         }
     }
-    if (empty_subscription)
-        out << "0";
+    //    if (empty_subscription)
+    //        out << "1";
 }
 
 void write_array_index_variables(const Scope &scope, const bh_view &view, stringstream &out,
