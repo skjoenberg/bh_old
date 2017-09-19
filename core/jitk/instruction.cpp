@@ -293,7 +293,7 @@ void write_operation(const bh_instruction &instr, const vector<string> &ops, str
             } else if (opencl and bh_type_is_complex(t0)) {
                 out << "CABS(" << ops[0] << ", " << ops[1] << ");\n";
             } else if (bh_type_is_float(t0)) {
-                out << ops[0] << " = fabs(" << ops[1] << ");\n";
+                out << ops[0] << " = abs(" << ops[1] << ");\n";
             } else if (!opencl and t0 == bh_type::INT64) {
                 out << ops[0] << " = llabs(" << ops[1] << ");\n";
             } else {
@@ -355,7 +355,7 @@ void write_operation(const bh_instruction &instr, const vector<string> &ops, str
             if (opencl and bh_type_is_complex(instr.operand_type(0))) {
                 out << "CADD(" << ops[0] << ", " << ops[1] << ", " << ops[1] << ");\n";
             } else {
-                out << ops[0] << " += " << ops[1] << ";\n";
+                out << ops[0] << " = " << ops[0] << " + " << ops[1] << ";\n";
             }
             break;
         case BH_ADD_ACCUMULATE:
