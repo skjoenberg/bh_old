@@ -33,7 +33,7 @@ namespace jitk {
 // Return Fortran types, which are used inside the Fortran kernels
 const char *write_fortran_type(bh_type dtype) {
     switch (dtype) {
-        case bh_type::BOOL:       return "bool";
+        case bh_type::BOOL:       return "logical";
         case bh_type::INT8:       return "integer*1";
         case bh_type::INT16:      return "integer*2";
         case bh_type::INT32:      return "integer*4";
