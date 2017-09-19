@@ -222,8 +222,8 @@ void loop_head_writer(const SymbolTable &symbols, Scope &scope, const LoopB &blo
     if (block._sweeps.size() > 0 and loop_is_peeled) // If the for-loop has been peeled, we should start at 1
         out << "=1,";
     else
-        out << "=1,";
-    out << block.size << "\n";
+        out << "=0,";
+    out << block.size-1 << "\n";
 }
 
 void Impl::write_kernel(const vector<Block> &block_list, const SymbolTable &symbols, const ConfigParser &config, stringstream &ss) {
@@ -271,7 +271,7 @@ void Impl::write_kernel(const vector<Block> &block_list, const SymbolTable &symb
         spaces(converts, 4);
         converts << "c" << symbols.baseID(b) << "= CONVERT_POINTER(" << "data_list, " << i << ")" << "\n";
         spaces(converts, 4);
-        converts << "call c_f_pointer(c" << symbols.baseID(b) << ", a" << symbols.baseID(b) << ", shape=[2])\n";
+        converts << "call c_f_pointer(c" << symbols.baseID(b) << ", a" << symbols.baseID(b) << ", shape=[" << b->nelem << "])\n";
     }
 
     for(const Block &block: block_list) {
