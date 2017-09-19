@@ -239,9 +239,9 @@ void write_loop_block(const SymbolTable &symbols,
             const bh_view &output = instr->operand[0];
             if (not scope.isDeclared(output) and not scope.isArray(output)) {
                 // Let's write the declaration of the scalar variable
-                scope.writeDeclaration(output, type_writer(output.base->type), out);
-                out << "\n";
-                spaces(out, 4 + block.rank * 4);
+                scope.writeDeclaration(output, type_writer(output.base->type), declarations);
+                declarations << "\n";
+                spaces(declarations, 4 + block.rank * 4);
             }
         }
     }
@@ -280,9 +280,9 @@ void write_loop_block(const SymbolTable &symbols,
         for (const InstrPtr &instr: block._sweeps) {
             const bh_view &view = instr->operand[0];
             if (not scope.isArray(view) and not scope.isDeclared(view)) {
-                scope.writeDeclaration(view, type_writer(view.base->type), out);
-                out << "\n";
-                spaces(out, 4 + block.rank * 4);
+                scope.writeDeclaration(view, type_writer(view.base->type), declarations);
+                declarations << "\n";
+                spaces(declarations, 4 + block.rank * 4);
             }
             scope.getName(view, out);
             out << "  = ";
@@ -319,11 +319,11 @@ void write_loop_block(const SymbolTable &symbols,
                 if (not peeled_scope.isDeclared(*view)) {
                     if (peeled_scope.isTmp(view->base)) {
                         spaces(out, 8 + block.rank * 4);
-                        peeled_scope.writeDeclaration(*view, type_writer(view->base->type), out);
-                        out << "\n";
+                        peeled_scope.writeDeclaration(*view, type_writer(view->base->type), declarations);
+                        declarations << "\n";
                     } else if (peeled_scope.isScalarReplaced_R(*view)) {
                         spaces(out, 8 + block.rank * 4);
-                        peeled_scope.writeDeclaration(*view, type_writer(view->base->type), out);
+                        peeled_scope.writeDeclaration(*view, type_writer(view->base->type), declarations);
                         out << " " << peeled_scope.getName(*view) << " = a" << symbols.baseID(view->base);
                         write_array_subscription(peeled_scope, *view, out);
                         out << "\n";
@@ -334,9 +334,9 @@ void write_loop_block(const SymbolTable &symbols,
         // Write the indexes declarations
         for (const bh_view *view: indexes) {
             if (not peeled_scope.isIdxDeclared(*view)) {
-                spaces(out, 8 + block.rank * 4);
-                peeled_scope.writeIdxDeclaration(*view, type_writer(bh_type::UINT64), out);
-                out << "\n";
+                spaces(declarations, 8 + block.rank * 4);
+                peeled_scope.writeIdxDeclaration(*view, type_writer(bh_type::UINT64), declarations);
+                declarations << "\n";
             }
         }
         out << "\n";
@@ -347,7 +347,7 @@ void write_loop_block(const SymbolTable &symbols,
                     write_instr(peeled_scope, *b.getInstr(), out, opencl);
                 }
             } else {
-                write_loop_block(symbols, &peeled_scope, b.getLoop(), config, threaded_blocks, opencl, type_writer, head_writer, out, out);
+                write_loop_block(symbols, &peeled_scope, b.getLoop(), config, threaded_blocks, opencl, type_writer, head_writer, out, declarations);
             }
         }
         spaces(out, 4 + block.rank*4);
@@ -381,9 +381,9 @@ void write_loop_block(const SymbolTable &symbols,
     // Write the indexes declarations
     for (const bh_view *view: indexes) {
         if (not scope.isIdxDeclared(*view)) {
-            spaces(out, 8 + block.rank * 4);
-            scope.writeIdxDeclaration(*view, type_writer(bh_type::UINT64), out);
-            out << "\n";
+            spaces(declarations, 8 + block.rank * 4);
+            scope.writeIdxDeclaration(*view, type_writer(bh_type::UINT64), declarations);
+            declarations << "\n";
         }
     }
 
@@ -397,7 +397,7 @@ void write_loop_block(const SymbolTable &symbols,
                     write_instr(scope, *b.getInstr(), out, true);
                 }
             } else {
-                write_loop_block(symbols, &scope, b.getLoop(), config, threaded_blocks, opencl, type_writer, head_writer, out, out);
+                write_loop_block(symbols, &scope, b.getLoop(), config, threaded_blocks, opencl, type_writer, head_writer, out, declarations);
             }
         }
     } else {
@@ -418,7 +418,7 @@ void write_loop_block(const SymbolTable &symbols,
                     write_instr(scope, *instr, out);
                 }
             } else {
-                write_loop_block(symbols, &scope, b.getLoop(), config, threaded_blocks, opencl, type_writer, head_writer, out, out);
+                write_loop_block(symbols, &scope, b.getLoop(), config, threaded_blocks, opencl, type_writer, head_writer, out, declarations);
             }
         }
     }
